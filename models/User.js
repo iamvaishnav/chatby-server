@@ -16,6 +16,14 @@ class User {
             console.error(`Unable to establish a collection handle : ${e}`);
         }
     }
+
+    async save() {
+        try {
+            await user.insertOne(this);
+        } catch {
+            console.log('Some error while creating the user');
+        }
+    }
 }
 
 module.exports = User;

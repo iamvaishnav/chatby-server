@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const socket = require('socket.io');
+const socket = require('./utils/socket');
 
 const connect = require('./utils/database');
 
@@ -8,6 +8,9 @@ const User = require('./models/User');
 const Groups = require('./models/Groups');
 const Chats = require('./models/Chats');
 const Location = require('./models/Location');
+
+//routes
+const chatRoutes = require('./routes/chat');
 
 const app = express();
 
@@ -20,9 +23,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use('/', (req, res) => {
-    return res.json({ message: 'hello world' });
-});
+app.use('/', chatRoutes);
 connect
     .then(async (client) => {
         console.log('connected to mongodb');
@@ -31,7 +32,11 @@ connect
         await Chats.injectDB(client);
         await Location.injectDB(client);
 
-        app.listen(8080);
+        const server = app.listen(8080);
+        io = socket.init(server);
+        io.on('connection', (socket) => {
+            console.log('New connection');
+        });
     })
     .catch((err) => {
         console.log(err);
